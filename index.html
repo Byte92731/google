@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Для Ариночки</title>
+    <style>
+        /* Базовые стили страницы */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Бесконечный фон под углом 45 градусов */
+        .bg-pattern {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            transform: rotate(-45deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            pointer-events: none; /* Фон не мешает кликам */
+            
+            /* Изначально фон полностью скрыт */
+            opacity: 0; 
+            transition: opacity 0.5s ease-out 0.1s; /* Сделано ЧУТЬ БЫСТРЕЕ (0.5 секунды вместо 2) */
+            z-index: 1;
+        }
+
+        /* Состояние активации фона (очень прозрачный, не бьет по глазам) */
+        .bg-pattern.show-bg {
+            opacity: 0.07; 
+        }
+
+        /* Строка с повторяющимся текстом */
+        .marquee-line {
+            white-space: nowrap;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #ff0055;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 10px 0;
+        }
+
+        /* Смещение строк для шахматного эффекта */
+        .marquee-line:nth-child(even) {
+            transform: translateX(-50px);
+        }
+
+        /* Стильная кнопка ЖМАЙ! */
+        .btn-jmay {
+            padding: 20px 50px;
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #000;
+            background: linear-gradient(45deg, #ff0055, #ff5500);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.6);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        .btn-jmay:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(255, 0, 85, 0.9);
+        }
+
+        /* Исчезновение кнопки */
+        .btn-jmay.hide {
+            opacity: 0;
+            transform: scale(0.3);
+            pointer-events: none;
+        }
+
+        /* Главный контейнер для сердца */
+        .scene {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            z-index: 5;
+        }
+
+        /* Светящаяся точка */
+        .dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #ff0055;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055;
+            
+            /* Изначально все точки в центре */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            
+            /* Анимация вылета с пружинным эффектом */
+            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.5), 
+                        opacity 0.8s ease,
+                        left 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.5),
+                        top 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.5);
+        }
+
+        /* Буква А, которая вылетает на зрителя */
+        .letter-a {
+            position: absolute;
+            top: 47%;
+            left: 50%;
+            font-size: 5.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px #ff0055;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index: 6;
+            transition: transform 1.4s cubic-bezier(0.175, 0.885, 0.32, 1.25) 0.3s, 
+                        opacity 0.9s ease 0.3s;
+        }
+
+        /* Состояние после клика */
+        .scene.show-all .letter-a {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern" id="bgPattern"></div>
+
+    <button class="btn-jmay" id="jmayBtn">ЖМАЙ!</button>
+
+    <div class="scene" id="heartScene">
+        <div class="letter-a">А</div>
+    </div>
+
+    <script>
+        // 1. Генерация фона
+        const bgPattern = document.getElementById('bgPattern');
+        const textRow = "Я ЛЮБЛЮ АРИНОЧКУ)".repeat(20); 
+        
+        for (let i = 0; i < 35; i++) {
+            const line = document.createElement('div');
+            line.classList.add('marquee-line');
+            line.innerText = textRow;
+            bgPattern.appendChild(line);
+        }
+
+        // 2. Расчёт и подготовка точек сердца
+        const btn = document.getElementById('jmayBtn');
+        const scene = document.getElementById('heartScene');
+        const totalDots = 70; 
+        const dotsArray = [];
+
+        for (let i = 0; i < totalDots; i++) {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            scene.appendChild(dot);
+            
+            const t = (i / totalDots) * Math.PI * 2;
+            let x = 16 * Math.pow(Math.sin(t), 3);
+            let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+            
+            const scale = 8.5; 
+            const finalLeft = 150 + x * scale;
+            const finalTop = 130 - y * scale;
+
+            dotsArray.push({ element: dot, left: finalLeft, top: finalTop });
+        }
+
+        // Клик по кнопке ЖМАЙ!
+        btn.addEventListener('click', () => {
+            btn.classList.add('hide'); 
+            scene.style.visibility = 'visible'; 
+
+            setTimeout(() => {
+                scene.classList.add('show-all');
+                bgPattern.classList.add('show-bg'); // Включение фона (теперь быстрого)
+                
+                // Взрывной разлет точек
+                dotsArray.forEach((dotObj) => {
+                    dotObj.element.style.left = `${dotObj.left}px`;
+                    dotObj.element.style.top = `${dotObj.top}px`;
+                    dotObj.element.style.transform = 'translate(-50%, -50%) scale(1)';
+                    dotObj.element.style.opacity = '1';
+                    dotObj.element.style.transitionDelay = `${Math.random() * 0.15}s`;
+                });
+            }, 200);
+        });
+    </script>
+
+</body>
+</html>
